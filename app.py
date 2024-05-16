@@ -17,8 +17,7 @@ def get_word_freq():
         words = [word[0] for word in word_freq]
         freqs = [float(word[1]) for word in word_freq]
         return words, freqs
-
-
+    
 words, freqs = get_word_freq()
 
 page_num = st.session_state.get("page_num", 0)
@@ -33,6 +32,7 @@ with st.sidebar:
     st.write(f"Page Count: {page_count}")
     show_freqs = st.toggle("Show Frequencies", value=False)
     capitalize = st.toggle("Capitalize", value=False)
+    sort_by = st.selectbox("Sort By", ["Frequency", "Alphabetical"])
     reset_page = st.button("Reset Page")
     reset = st.button("Reset Words")
     export = st.download_button(
@@ -82,6 +82,11 @@ with st.sidebar:
         st.session_state.yellow_words = {}
         st.experimental_rerun()
 
+if sort_by == "Frequency":
+    words, freqs = zip(*sorted(zip(words, freqs), key=lambda x: x[1], reverse=True))
+elif sort_by == "Alphabetical":
+    words, freqs = zip(*sorted(zip(words, freqs), key=lambda x: x[0]))
+
 word_picker, word_viewer = st.tabs(["Pick Words", "View Words"])
 
 def draw_navigator(key="nav"):
@@ -106,10 +111,11 @@ with word_picker:
     draw_navigator()
 
     # show 50 most common words and have a radio button for user to select red yellow, or green
+
     for i in range(page_num * page_size, (page_num + 1) * page_size):
         word = words[i]
         freq = freqs[i]
-        col1, col2, col3 = st.columns([1, 1, 1])
+        col1, col2, col3 = st.columns([.25, .25, .25])
         with col1:
             pretty_word = word.capitalize() if capitalize else word
             st.write(
@@ -117,13 +123,13 @@ with word_picker:
             )
         with col2:
             st.session_state.red_words[word] = st.checkbox(
-                "Red",
+                ":red[R]",
                 key=f"{word}_red",
                 value=st.session_state.red_words.get(word, False),
             )
         with col3:
             st.session_state.yellow_words[word] = st.checkbox(
-                "Yellow",
+                ":blue[Y]",
                 key=f"{word}_yellow",
                 value=st.session_state.yellow_words.get(word, False),
             )
