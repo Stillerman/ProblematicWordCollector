@@ -74,12 +74,11 @@ const App = () => {
     reader.readAsText(file);
   };
 
-  const handleAddWord = (type) => {
-    if (type === "red") {
-      setRedWords((prev) => ({ ...prev, [newWord.toLowerCase()]: true }));
-    } else {
-      setYellowWords((prev) => ({ ...prev, [newWord.toLowerCase()]: true }));
-    }
+
+  const updateWord = (word, type) => {
+    word = word.toLowerCase();
+    setRedWords((prev) => ({ ...prev, [word]: type === "red" }));
+    setYellowWords((prev) => ({ ...prev, [word]: type === "yellow" }));
     setNewWord("");
   };
 
@@ -112,8 +111,14 @@ const App = () => {
         <DialogTitle>Help</DialogTitle>
         <DialogContent>
           <Typography variant="body1">
-            This application helps you categorize words as either 'Yellow' or 'Red'.
-            Yellow words are less severe and need attention, while Red words are more severe and need immediate action.
+          You will be presented with a list of English words.  They are ordered in decreasing order of their frequency-in-use, i.e. the most frequently used words are at the top of the list.<br/>
+
+          Please indicate which words you might have trouble pronouncing fluently.<br/><br/>
+
+          Yellow = a word that I might have trouble pronouncing fluently.<br/>
+          Red     = a word that I almost certainly would have trouble pronouncing fluently.<br/><br/>
+
+          If you change your mind, just click again.
           </Typography>
         </DialogContent>
         <DialogActions>
@@ -241,10 +246,7 @@ const App = () => {
                         <Checkbox
                           checked={yellowWords[word] || false}
                           onChange={(e) =>
-                            setYellowWords((prev) => ({
-                              ...prev,
-                              [word]: e.target.checked,
-                            }))
+                            updateWord(word, e.target.checked ? "yellow" : false)
                           }
                         />
                       }
@@ -255,10 +257,7 @@ const App = () => {
                         <Checkbox
                           checked={redWords[word] || false}
                           onChange={(e) =>
-                            setRedWords((prev) => ({
-                              ...prev,
-                              [word]: e.target.checked,
-                            }))
+                            updateWord(word, e.target.checked ? "red" : false)
                           }
                         />
                       }
@@ -282,10 +281,10 @@ const App = () => {
           <Box>
             <Box display="flex" alignItems="center" my={2}>
               <TextField label="New Word" value={newWord} onChange={(e) => setNewWord(e.target.value)} />
-              <Button variant="contained" onClick={() => handleAddWord("red")} style={{ marginLeft: "10px" }}>
+              <Button variant="contained" onClick={() => updateWord(newWord, "red")} style={{ marginLeft: "10px" }}>
                 Add to Red
               </Button>
-              <Button variant="contained" onClick={() => handleAddWord("yellow")} style={{ marginLeft: "10px" }}>
+              <Button variant="contained" onClick={() => updateWord(newWord, "yellow")} style={{ marginLeft: "10px" }}>
                 Add to Yellow
               </Button>
             </Box>
