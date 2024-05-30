@@ -36,8 +36,8 @@ const App = () => {
   const [showFreqs, setShowFreqs] = useState(false);
   const [capitalize, setCapitalize] = useState(false);
   const [sortBy, setSortBy] = useState("Frequency");
-  const [redWords, setRedWords] = useState({});
-  const [yellowWords, setYellowWords] = useState({});
+  const [redWords, setRedWords] = useState(() => JSON.parse(localStorage.getItem('redWords')) || {});
+  const [yellowWords, setYellowWords] = useState(() => JSON.parse(localStorage.getItem('yellowWords')) || {});
   const [newWord, setNewWord] = useState("");
   const [tabValue, setTabValue] = useState(0);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -82,6 +82,11 @@ const App = () => {
     }
     setNewWord("");
   };
+
+  useEffect(() => {
+    localStorage.setItem('redWords', JSON.stringify(redWords));
+    localStorage.setItem('yellowWords', JSON.stringify(yellowWords));
+  }, [redWords, yellowWords]);
 
   return (
     <>
