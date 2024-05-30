@@ -20,26 +20,24 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogActions
+  DialogActions,
 } from "@mui/material";
 
 import freqDataRaw from "./word_freq.json";
+import { Download, Upload, Settings, HelpOutline } from "@mui/icons-material";
+import fileDownload from "js-file-download";
+import "./index.css";
 
 // Remove words with length < 2 that are not 'a' or 'i'
 const freqData = freqDataRaw.filter((word) => word.word.length >= 2 || ["a", "i"].includes(word.word));
 
-import './index.css'
-
-import { Download, Upload, Settings, HelpOutline } from "@mui/icons-material";
-import fileDownload from "js-file-download";
-
 const App = () => {
-  const [pageNum, setPageNum] = useState(0);
-  const [pageSize, setPageSize] = useState(100);
-  const [numColumns, setNumColumns] = useState(5);
-  const [showFreqs, setShowFreqs] = useState(false);
-  const [capitalize, setCapitalize] = useState(false);
-  const [sortBy, setSortBy] = useState("Frequency");
+  const [pageNum, setPageNum] = useState(() => JSON.parse(localStorage.getItem('pageNum')) || 0);
+  const [pageSize, setPageSize] = useState(() => JSON.parse(localStorage.getItem('pageSize')) || 100);
+  const [numColumns, setNumColumns] = useState(() => JSON.parse(localStorage.getItem('numColumns')) || 5);
+  const [showFreqs, setShowFreqs] = useState(() => JSON.parse(localStorage.getItem('showFreqs')) || false);
+  const [capitalize, setCapitalize] = useState(() => JSON.parse(localStorage.getItem('capitalize')) || false);
+  const [sortBy, setSortBy] = useState(() => localStorage.getItem('sortBy') || "Frequency");
   const [redWords, setRedWords] = useState(() => JSON.parse(localStorage.getItem('redWords')) || {});
   const [yellowWords, setYellowWords] = useState(() => JSON.parse(localStorage.getItem('yellowWords')) || {});
   const [newWord, setNewWord] = useState("");
@@ -48,9 +46,7 @@ const App = () => {
   const [helpOpen, setHelpOpen] = useState(false);
 
   const handlePageChange = (increment) => {
-    setPageNum((prev) =>
-      Math.max(0, Math.min(prev + increment, pageCount - 1))
-    );
+    setPageNum((prev) => Math.max(0, Math.min(prev + increment, pageCount - 1)));
   };
 
   const pageCount = Math.ceil(freqData.length / pageSize);
@@ -68,12 +64,8 @@ const App = () => {
     const reader = new FileReader();
     reader.onload = (e) => {
       const data = JSON.parse(e.target.result);
-      setRedWords(
-        data.red.reduce((acc, word) => ({ ...acc, [word]: true }), {})
-      );
-      setYellowWords(
-        data.yellow.reduce((acc, word) => ({ ...acc, [word]: true }), {})
-      );
+      setRedWords(data.red.reduce((acc, word) => ({ ...acc, [word]: true }), {}));
+      setYellowWords(data.yellow.reduce((acc, word) => ({ ...acc, [word]: true }), {}));
     };
     reader.readAsText(file);
   };
@@ -88,9 +80,15 @@ const App = () => {
   };
 
   useEffect(() => {
+    localStorage.setItem('pageNum', JSON.stringify(pageNum));
+    localStorage.setItem('pageSize', JSON.stringify(pageSize));
+    localStorage.setItem('numColumns', JSON.stringify(numColumns));
+    localStorage.setItem('showFreqs', JSON.stringify(showFreqs));
+    localStorage.setItem('capitalize', JSON.stringify(capitalize));
+    localStorage.setItem('sortBy', sortBy);
     localStorage.setItem('redWords', JSON.stringify(redWords));
     localStorage.setItem('yellowWords', JSON.stringify(yellowWords));
-  }, [redWords, yellowWords]);
+  }, [pageNum, pageSize, numColumns, showFreqs, capitalize, sortBy, redWords, yellowWords]);
 
   return (
     <>
@@ -119,11 +117,7 @@ const App = () => {
           <Button onClick={() => setHelpOpen(false)}>Close</Button>
         </DialogActions>
       </Dialog>
-      <Drawer
-        anchor="right"
-        open={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
-      >
+      <Drawer anchor="right" open={drawerOpen} onClose={() => setDrawerOpen(false)}>
         <Box p={2} width="250px">
           <Typography variant="h6" gutterBottom>
             Settings
@@ -134,7 +128,7 @@ const App = () => {
               value={pageSize}
               onChange={(e) => setPageSize(e.target.value)}
               label="Page Size"
-              style={{marginBottom: '1rem'}}
+              style={{ marginBottom: "1rem" }}
             >
               {[10, 20, 30, 40, 50, 75, 100].map((size) => (
                 <MenuItem key={size} value={size}>
@@ -150,7 +144,7 @@ const App = () => {
               onChange={(e) => setNumColumns(e.target.value)}
               label="Number of Columns"
             >
-              {[1,2,3,4,5,6,7].map((size) => (
+              {[1, 2, 3, 4, 5, 6, 7].map((size) => (
                 <MenuItem key={size} value={size}>
                   {size}
                 </MenuItem>
@@ -158,21 +152,11 @@ const App = () => {
             </Select>
           </FormControl>
           <FormControlLabel
-            control={
-              <Checkbox
-                checked={showFreqs}
-                onChange={(e) => setShowFreqs(e.target.checked)}
-              />
-            }
+            control={<Checkbox checked={showFreqs} onChange={(e) => setShowFreqs(e.target.checked)} />}
             label="Show Frequencies"
           />
           <FormControlLabel
-            control={
-              <Checkbox
-                checked={capitalize}
-                onChange={(e) => setCapitalize(e.target.checked)}
-              />
-            }
+            control={<Checkbox checked={capitalize} onChange={(e) => setCapitalize(e.target.checked)} />}
             label="Capitalize"
           />
           <FormControl fullWidth>
@@ -228,31 +212,18 @@ const App = () => {
         </Box>
       </Drawer>
       <Container>
-        <Tabs
-          value={tabValue}
-          onChange={(e, newValue) => setTabValue(newValue)}
-        >
+        <Tabs value={tabValue} onChange={(e, newValue) => setTabValue(newValue)}>
           <Tab label="Pick Words" />
           <Tab label="View Words" />
         </Tabs>
         {tabValue === 0 && (
           <Box>
             <Box display="flex" justifyContent="space-between" my={2}>
-              <Button
-                variant="contained"
-                onClick={() => handlePageChange(-1)}
-                disabled={pageNum <= 0}
-              >
+              <Button variant="contained" onClick={() => handlePageChange(-1)} disabled={pageNum <= 0}>
                 Previous Page
               </Button>
-              <Typography variant="body1">{`Page ${
-                pageNum + 1
-              } of ${pageCount}`}</Typography>
-              <Button
-                variant="contained"
-                onClick={() => handlePageChange(1)}
-                disabled={pageNum >= pageCount - 1}
-              >
+              <Typography variant="body1">{`Page ${pageNum + 1} of ${pageCount}`}</Typography>
+              <Button variant="contained" onClick={() => handlePageChange(1)} disabled={pageNum >= pageCount - 1}>
                 Next Page
               </Button>
             </Box>
@@ -260,19 +231,9 @@ const App = () => {
               {freqData
                 .slice(pageNum * pageSize, (pageNum + 1) * pageSize)
                 .map(({ word, probability: freq }, i) => (
-                  <Box
-                    key={i}
-                    display="flex"
-                    alignItems="center"
-                    width={`calc(${100 / numColumns}% - 20px)`}
-                    height={'1rem'}
-                    m={1}
-                  >
+                  <Box key={i} display="flex" alignItems="center" width={`calc(${100 / numColumns}% - 20px)`} height={"1rem"} m={1}>
                     <Typography variant="body1" style={{ minWidth: "4rem" }}>
-                      {capitalize
-                        ? word.charAt(0).toUpperCase() + word.slice(1)
-                        : word}{" "}
-                      {showFreqs && `(${freq})`}
+                      {capitalize ? word.charAt(0).toUpperCase() + word.slice(1) : word} {showFreqs && `(${freq})`}
                     </Typography>
                     <FormControlLabel
                       control={
@@ -306,21 +267,11 @@ const App = () => {
                 ))}
             </Box>
             <Box display="flex" justifyContent="space-between" my={2}>
-              <Button
-                variant="contained"
-                onClick={() => handlePageChange(-1)}
-                disabled={pageNum <= 0}
-              >
+              <Button variant="contained" onClick={() => handlePageChange(-1)} disabled={pageNum <= 0}>
                 Previous Page
               </Button>
-              <Typography variant="body1">{`Page ${
-                pageNum + 1
-              } of ${pageCount}`}</Typography>
-              <Button
-                variant="contained"
-                onClick={() => handlePageChange(1)}
-                disabled={pageNum >= pageCount - 1}
-              >
+              <Typography variant="body1">{`Page ${pageNum + 1} of ${pageCount}`}</Typography>
+              <Button variant="contained" onClick={() => handlePageChange(1)} disabled={pageNum >= pageCount - 1}>
                 Next Page
               </Button>
             </Box>
@@ -329,23 +280,11 @@ const App = () => {
         {tabValue === 1 && (
           <Box>
             <Box display="flex" alignItems="center" my={2}>
-              <TextField
-                label="New Word"
-                value={newWord}
-                onChange={(e) => setNewWord(e.target.value)}
-              />
-              <Button
-                variant="contained"
-                onClick={() => handleAddWord("red")}
-                style={{ marginLeft: "10px" }}
-              >
+              <TextField label="New Word" value={newWord} onChange={(e) => setNewWord(e.target.value)} />
+              <Button variant="contained" onClick={() => handleAddWord("red")} style={{ marginLeft: "10px" }}>
                 Add to Red
               </Button>
-              <Button
-                variant="contained"
-                onClick={() => handleAddWord("yellow")}
-                style={{ marginLeft: "10px" }}
-              >
+              <Button variant="contained" onClick={() => handleAddWord("yellow")} style={{ marginLeft: "10px" }}>
                 Add to Yellow
               </Button>
             </Box>
