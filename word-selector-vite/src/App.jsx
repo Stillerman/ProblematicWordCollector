@@ -21,21 +21,25 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  Tooltip,
 } from "@mui/material";
 
 import freqDataRaw from "./word_freq.json";
 import { Download, Upload, Settings, HelpOutline } from "@mui/icons-material";
 import fileDownload from "js-file-download";
 import "./index.css";
+import { formatFrequency } from "./formatFreq";
 
 // Remove words with length < 2 that are not 'a' or 'i'
-const freqData = freqDataRaw.filter((word) => word.word.length >= 2 || ["a", "i"].includes(word.word));
+// format probability and add rank
+const freqData = freqDataRaw
+  .filter((word) => word.word.length >= 2 || ["a", "i"].includes(word.word))
+  .map((word, i) => ({ ...word, probability: formatFrequency(word.probability), rank: i }));
 
 const App = () => {
   const [pageNum, setPageNum] = useState(() => JSON.parse(localStorage.getItem('pageNum')) || 0);
   const [pageSize, setPageSize] = useState(() => JSON.parse(localStorage.getItem('pageSize')) || 100);
   const [numColumns, setNumColumns] = useState(() => JSON.parse(localStorage.getItem('numColumns')) || 5);
-  const [showFreqs, setShowFreqs] = useState(() => JSON.parse(localStorage.getItem('showFreqs')) || false);
   const [capitalize, setCapitalize] = useState(() => JSON.parse(localStorage.getItem('capitalize')) || false);
   const [sortBy, setSortBy] = useState(() => localStorage.getItem('sortBy') || "Frequency");
   const [redWords, setRedWords] = useState(() => JSON.parse(localStorage.getItem('redWords')) || {});
@@ -83,12 +87,11 @@ const App = () => {
     localStorage.setItem('pageNum', JSON.stringify(pageNum));
     localStorage.setItem('pageSize', JSON.stringify(pageSize));
     localStorage.setItem('numColumns', JSON.stringify(numColumns));
-    localStorage.setItem('showFreqs', JSON.stringify(showFreqs));
     localStorage.setItem('capitalize', JSON.stringify(capitalize));
     localStorage.setItem('sortBy', sortBy);
     localStorage.setItem('redWords', JSON.stringify(redWords));
     localStorage.setItem('yellowWords', JSON.stringify(yellowWords));
-  }, [pageNum, pageSize, numColumns, showFreqs, capitalize, sortBy, redWords, yellowWords]);
+  }, [pageNum, pageSize, numColumns, capitalize, sortBy, redWords, yellowWords]);
 
   return (
     <>
@@ -130,7 +133,7 @@ const App = () => {
               label="Page Size"
               style={{ marginBottom: "1rem" }}
             >
-              {[10, 20, 30, 40, 50, 75, 100].map((size) => (
+              {[10, 20, 30, 40, 50, 75, 100, 125, 150, 175, 200].map((size) => (
                 <MenuItem key={size} value={size}>
                   {size}
                 </MenuItem>
@@ -151,10 +154,6 @@ const App = () => {
               ))}
             </Select>
           </FormControl>
-          <FormControlLabel
-            control={<Checkbox checked={showFreqs} onChange={(e) => setShowFreqs(e.target.checked)} />}
-            label="Show Frequencies"
-          />
           <FormControlLabel
             control={<Checkbox checked={capitalize} onChange={(e) => setCapitalize(e.target.checked)} />}
             label="Capitalize"
@@ -211,7 +210,7 @@ const App = () => {
           </Button>
         </Box>
       </Drawer>
-      <Container>
+      <div style={{padding: "1rem"}}>
         <Tabs value={tabValue} onChange={(e, newValue) => setTabValue(newValue)}>
           <Tab label="Pick Words" />
           <Tab label="View Words" />
@@ -230,11 +229,13 @@ const App = () => {
             <Box display="flex" flexWrap="wrap">
               {freqData
                 .slice(pageNum * pageSize, (pageNum + 1) * pageSize)
-                .map(({ word, probability: freq }, i) => (
+                .map(({ word, probability: freq, rank }, i) => (
                   <Box key={i} display="flex" alignItems="center" width={`calc(${100 / numColumns}% - 20px)`} height={"1rem"} m={1}>
-                    <Typography variant="body1" style={{ minWidth: "4rem" }}>
-                      {capitalize ? word.charAt(0).toUpperCase() + word.slice(1) : word} {showFreqs && `(${freq})`}
-                    </Typography>
+                    <Tooltip title={`Freq: ${(freq)} / Rank ${rank}`} arrow placement="top" enterDelay={500} leaveDelay={0}>
+                      <Typography variant="body1" style={{ minWidth: "4rem" }}>
+                        {capitalize ? word.charAt(0).toUpperCase() + word.slice(1) : word}
+                      </Typography>
+                    </Tooltip>
                     <FormControlLabel
                       control={
                         <Checkbox
@@ -308,7 +309,7 @@ const App = () => {
             </Box>
           </Box>
         )}
-      </Container>
+      </div>
     </>
   );
 };
