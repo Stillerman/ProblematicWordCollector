@@ -23,7 +23,10 @@ import {
   DialogActions
 } from "@mui/material";
 
-import freqData from "./word_freq.json";
+import freqDataRaw from "./word_freq.json";
+
+// Remove words with length < 2 that are not 'a' or 'i'
+const freqData = freqDataRaw.filter((word) => word.word.length >= 2 || ["a", "i"].includes(word.word));
 
 import './index.css'
 
@@ -32,7 +35,8 @@ import fileDownload from "js-file-download";
 
 const App = () => {
   const [pageNum, setPageNum] = useState(0);
-  const [pageSize, setPageSize] = useState(50);
+  const [pageSize, setPageSize] = useState(100);
+  const [numColumns, setNumColumns] = useState(5);
   const [showFreqs, setShowFreqs] = useState(false);
   const [capitalize, setCapitalize] = useState(false);
   const [sortBy, setSortBy] = useState("Frequency");
@@ -130,8 +134,23 @@ const App = () => {
               value={pageSize}
               onChange={(e) => setPageSize(e.target.value)}
               label="Page Size"
+              style={{marginBottom: '1rem'}}
             >
-              {[10, 20, 30, 40, 50].map((size) => (
+              {[10, 20, 30, 40, 50, 75, 100].map((size) => (
+                <MenuItem key={size} value={size}>
+                  {size}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <FormControl fullWidth>
+            <InputLabel>Number of Columns</InputLabel>
+            <Select
+              value={numColumns}
+              onChange={(e) => setNumColumns(e.target.value)}
+              label="Number of Columns"
+            >
+              {[1,2,3,4,5,6,7].map((size) => (
                 <MenuItem key={size} value={size}>
                   {size}
                 </MenuItem>
@@ -245,7 +264,8 @@ const App = () => {
                     key={i}
                     display="flex"
                     alignItems="center"
-                    width="calc(33.33% - 20px)"
+                    width={`calc(${100 / numColumns}% - 20px)`}
+                    height={'1rem'}
                     m={1}
                   >
                     <Typography variant="body1" style={{ minWidth: "4rem" }}>
