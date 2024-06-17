@@ -24,17 +24,10 @@ import {
   Tooltip,
 } from "@mui/material";
 
-import freqDataRaw from "./word_freq.json";
 import { Download, Upload, Settings, HelpOutline } from "@mui/icons-material";
 import fileDownload from "js-file-download";
 import "./index.css";
-import { formatFrequency } from "./formatFreq";
-
-// Remove words with length < 2 that are not 'a' or 'i'
-// format probability and add rank
-const freqData = freqDataRaw
-  .filter((word) => word.word.length >= 2 || ["a", "i"].includes(word.word))
-  .map((word, i) => ({ ...word, probability: formatFrequency(word.probability), rank: i }));
+import { wordLibrary } from "./wordLibrary";
 
 const App = () => {
   const [pageNum, setPageNum] = useState(() => JSON.parse(localStorage.getItem('pageNum')) || 0);
@@ -53,7 +46,9 @@ const App = () => {
     setPageNum((prev) => Math.max(0, Math.min(prev + increment, pageCount - 1)));
   };
 
-  const pageCount = Math.ceil(freqData.length / pageSize);
+  const selectedLibrary = tabValue < wordLibrary.length ? wordLibrary[tabValue] : null;
+
+  const pageCount = Math.ceil((selectedLibrary?.words.length || 0) / pageSize);
 
   const handleExport = () => {
     const data = JSON.stringify({
@@ -217,10 +212,12 @@ const App = () => {
       </Drawer>
       <div style={{padding: "1rem"}}>
         <Tabs value={tabValue} onChange={(e, newValue) => setTabValue(newValue)}>
-          <Tab label="Pick Words" />
+          {
+            wordLibrary.map(tab => <Tab key={tab.title} label={tab.title} />)
+          }
           <Tab label="View Words" />
         </Tabs>
-        {tabValue === 0 && (
+        {selectedLibrary && selectedLibrary.words.length && (
           <Box>
             <Box display="flex" justifyContent="space-between" my={2}>
               <Button variant="contained" onClick={() => handlePageChange(-1)} disabled={pageNum <= 0}>
@@ -232,7 +229,7 @@ const App = () => {
               </Button>
             </Box>
             <Box display="flex" flexWrap="wrap">
-              {freqData
+              {selectedLibrary.words
                 .slice(pageNum * pageSize, (pageNum + 1) * pageSize)
                 .map(({ word, probability: freq, rank }, i) => (
                   <Box key={i} display="flex" alignItems="center" width={`calc(${100 / numColumns}% - 20px)`} height={"1rem"} m={1}>
@@ -277,7 +274,7 @@ const App = () => {
             </Box>
           </Box>
         )}
-        {tabValue === 1 && (
+        {tabValue === wordLibrary.length && (
           <Box>
             <Box display="flex" alignItems="center" my={2}>
               <TextField label="New Word" value={newWord} onChange={(e) => setNewWord(e.target.value)} />
