@@ -26,6 +26,33 @@ const nameData = [
     "Andy",
 ].map((n,i) => ({word: n, probability: 1, rank: i}))
 
+const cityNames = [
+    "New York",
+    "Los Angeles",
+    "Chicago",
+    "Houston",
+    "Philadelphia",
+    "San Francisco",
+    "Dallas",
+    "Austin",
+    "San Diego",
+    "Seattle",
+    "Denver",
+    "Washington",
+    "Boston",
+    "Miami",
+    "Atlanta",
+    "Detroit",
+    "Nashville",
+    "Portland",
+    "Las Vegas",
+    "San Jose",
+    "Phoenix",
+    "Tampa",
+    "Minneapolis",
+    "St. Louis",
+].map((n,i) => ({word: n, probability: 1, rank: i}))
+
 export const wordLibrary = [
     {
         title: "Common Words",
@@ -34,5 +61,9 @@ export const wordLibrary = [
     {
         title: "Names",
         words: nameData
+    },
+    {
+        title: "Cities",
+        words: cityNames
     }
 ]
